@@ -52,6 +52,7 @@ function love.draw()
     for  i = 2.5, 25, 1 do
         love.graphics.draw(hole, 0, i * 20, 0, holeS, holeS)
     end
+    --hi
     love.graphics.draw(digdug, VIRTUAL_WIDTH / 2 - digdugwidth, 250 + digdugheight, 0, sx, sy)
     push:finish()
 end
