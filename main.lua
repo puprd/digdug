@@ -2,8 +2,13 @@
 -- WINDOW_HEIGHT = 550 
 require 'src.Dependencies'
 local background
+local hole
 local digdug
-
+local digdugx = VIRTUAL_WIDTH / 2
+local digdugy = 0
+local HOLE = false
+local holex = 0
+local holey = 0
 function love.load()
     love.window.setMode(WINDOW_WIDTH, WINDOW_HEIGHT, {
         vsync = true,
@@ -22,7 +27,7 @@ end
 local function printgrid()
     for i = 1, 30, 1 do
         for j = 1, 30, 1 do
-            love.graphics.print(GRID[i][j], i  * 10, j * 10) -- Set the default value
+            love.graphics.print(GRID[i][j], i * 10, j * 10) -- Set the default value
         end
     end
 end
@@ -40,10 +45,9 @@ end
 --     -- no rotation
 --     0,
 --     -- scale factors on X and Y axis so it fills the screen
---     1.9, 1.9)
+--     1.9, 1.9
 function love.draw()
     push:start()
-
     local sx = VIRTUAL_WIDTH / background:getWidth()
     local sy = VIRTUAL_HEIGHT / background:getHeight()
 
@@ -55,19 +59,35 @@ function love.draw()
     local digdugwidth = digdug:getWidth() * sx / 2
     local digdugheight = digdug:getHeight() * sx / 2
     -- love.graphics.print(digdug:getWidth() * sx, 0, 0)
-    local holeS = 25 / 57 -- 0.4386
-    --love.graphics.print(holeS)
-    printgrid()
-    for i = 2.5, 25, 1 do
-        love.graphics.draw(hole, 0, i * 20, 0, holeS, holeS)
-    end
+    -- love.graphics.print(holeS)
+    -- --printgrid()
+    -- for i = 2.5, 25, 1 do
+    --     love.graphics.draw(hole, 0, i * 20, 0, holeS, holeS)
+    -- end
     -- hi
-    love.graphics.draw(digdug, VIRTUAL_WIDTH / 2 - digdugwidth, 250 + digdugheight, 0, sx, sy)
-    push:finish()
-end
+    local holeS = 25 / 57 -- 0.4386
 
-function love.keypressed(key)
-    if key == 'down' then
-        digdug.y  = digdug.y - 10
+    love.graphics.draw(digdug, digdugx - digdugwidth, digdugy, 0, sx, sy)
+    if HOLE == true then
+        love.graphics.draw(hole, holex, holey, 0, holeS, holeS)
     end
+    love.graphics.print(digdugy)
+    push:finish()
+            HOLE = false
+
+end
+local function drawhole(digdugx, digdugy)
+    if digdugy % 20 == 0 and digdugy > 50 then
+        HOLE = true
+        holex = digdugx
+        holey = digdugy
+    end
+end
+function love.update()
+    if love.keyboard.isDown('down') then
+        digdugy = digdugy + 5
+
+        drawhole(digdugx, digdugy)
+    end
+    
 end
