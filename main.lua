@@ -6,6 +6,7 @@ local hole
 local digdug
 local digdugx = VIRTUAL_WIDTH / 2
 local digdugy = 0
+local digdugorient = 0
 local HOLE = false
 local holex = 0
 local holey = 0
@@ -25,9 +26,9 @@ function love.load()
     hole = love.graphics.newImage("blockhole.png")
 end
 local function printgrid()
-    for i = 1, 30, 1 do
-        for j = 1, 30, 1 do
-            love.graphics.print(GRID[i][j], i * 10, j * 10) -- Set the default value
+    for i = 1, VIRTUAL_WIDTH / quality, 1 do
+        for j = 1, VIRTUAL_HEIGHT / quality, 1 do
+            love.graphics.print(HOLEGRID[i][j], i * 10, j * 10) -- Set the default value
         end
     end
 end
@@ -48,6 +49,7 @@ end
 --     1.9, 1.9
 function love.draw()
     push:start()
+    love.graphics.print(VIRTUAL_WIDTH / quality, 0, 30)
     local sx = VIRTUAL_WIDTH / background:getWidth()
     local sy = VIRTUAL_HEIGHT / background:getHeight()
 
@@ -60,34 +62,64 @@ function love.draw()
     local digdugheight = digdug:getHeight() * sx / 2
     -- love.graphics.print(digdug:getWidth() * sx, 0, 0)
     -- love.graphics.print(holeS)
-    -- --printgrid()
+   printgrid()
     -- for i = 2.5, 25, 1 do
     --     love.graphics.draw(hole, 0, i * 20, 0, holeS, holeS)
     -- end
     -- hi
-    local holeS = 25 / 57 -- 0.4386
+    local holeS = 25 / 64.5
 
-    love.graphics.draw(digdug, digdugx - digdugwidth, digdugy, 0, sx, sy)
-    if HOLE == true then
-        love.graphics.draw(hole, holex, holey, 0, holeS, holeS)
+    for i = 1, VIRTUAL_WIDTH / quality, 1 do
+        for j = 1, VIRTUAL_HEIGHT / quality, 1 do
+            if HOLEGRID[i][j] == 1 then
+                love.graphics.draw(hole, i * quality  - digdugwidth, j * quality + 40 - digdugheight, 0, holeS, holeS)
+            end
+        end
     end
-    love.graphics.print(digdugy)
+        love.graphics.draw(digdug, digdugx - digdugwidth, digdugy, digdugorient, sx, sy)
+
+    love.graphics.print(digdugx)
+    --love.graphics.print(digdugx, 0, 10)
     push:finish()
-            HOLE = false
 
 end
 local function drawhole(digdugx, digdugy)
-    if digdugy % 20 == 0 and digdugy > 50 then
-        HOLE = true
-        holex = digdugx
-        holey = digdugy
+    if digdugy % quality == 0 and digdugx % quality == 0 and digdugy >= 50 then
+        HOLEGRID[digdugx / quality][digdugy / quality - 1] = 1
+    end
+     if digdugy % 50 == 0 and digdugx % 50 == 0 and digdugy >= 50 then
+        GRID[digdugx / 50][digdugy / 50 - 1] = 1
     end
 end
 function love.update()
-    if love.keyboard.isDown('down') then
-        digdugy = digdugy + 5
-
-        drawhole(digdugx, digdugy)
-    end
     
+    if love.keyboard.isDown('down') and digdugy < 600 then
+        if digdugx % 50 == 0 then
+        digdugy = digdugy + 2.5
+        end
+        
+
+        drawhole(digdugx, digdugy) 
+    end
+     if love.keyboard.isDown('up') and digdugy > 0 then
+        if digdugx % 50 == 0 then
+        digdugy = digdugy - 2.5
+        end
+
+        drawhole(digdugx, digdugy) 
+    end
+     if love.keyboard.isDown('left') and digdugx > 50 then
+        if digdugy % 50 == 0 then
+        digdugx = digdugx - 2.5
+        end
+
+        drawhole(digdugx, digdugy) 
+    end
+    if love.keyboard.isDown('right') and digdugx < 550 then
+        if digdugy % 50 == 0 then
+        digdugx = digdugx + 2.5
+        end
+
+        drawhole(digdugx, digdugy) 
+    end
 end
