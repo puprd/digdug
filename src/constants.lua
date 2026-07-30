@@ -8,19 +8,20 @@
     cogden@cs50.harvard.edu
 
     Some global constants for our application.
-]] WINDOW_WIDTH = 600
+]] 
+WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 650
 
 quality = 12.5
 
-VIRTUAL_WIDTH = 600
+VIRTUAL_WIDTH = 800
 VIRTUAL_HEIGHT = 650
 GRID = {} -- Main table
 
 -- Initialize the 2D array with zeros
-for i = 1, VIRTUAL_WIDTH / 50, 1 do
+for i = 1, 600 / 50, 1 do
     GRID[i] = {} -- Create a new row table
-    for j = 1, VIRTUAL_HEIGHT / 50, 1 do
+    for j = 1, 650 / 50, 1 do
         GRID[i][j] = 0
     end
 end
