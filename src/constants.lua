@@ -29,9 +29,9 @@ end
 HOLEGRID = {} -- Main table
 
 -- Initialize the 2D array with zeros
-for i = 1, VIRTUAL_WIDTH / quality, 1 do
+for i = 1, VIRTUAL_WIDTH / quality , 1 do
     HOLEGRID[i] = {} -- Create a new row table
-    for j = 1, VIRTUAL_HEIGHT / quality, 1 do
+    for j = 1, 650 / quality, 1 do
         HOLEGRID[i][j] = 0
     end
 end

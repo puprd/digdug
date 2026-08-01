@@ -14,6 +14,7 @@ local digdugorient = 0
 local HOLE = false
 local holex = 0
 local holey = 0
+local movexamt = 2.5
 
 function love.load()
     love.window.setMode(WINDOW_WIDTH, WINDOW_HEIGHT, {
@@ -80,7 +81,7 @@ function love.draw()
     love.graphics.rectangle("fill", 0, 0, 25, 650)
     love.graphics.rectangle("fill", 625, 0, 175, 650)
     love.graphics.setColor(1, 1, 1)
-    printgrid()
+    printholegrid()
     -- for i = 2.5, 25, 1 do
     --     love.graphics.draw(hole, 0, i * 20, 0, holeS, holeS)
     -- end
@@ -90,7 +91,7 @@ function love.draw()
     for i = 1, 600 / quality, 1 do
         for j = 1, 650 / quality, 1 do
             if HOLEGRID[i][j] == 1 then
-                love.graphics.draw(hole, i * quality - digdugwidth, j * quality + 40 - digdugheight, 0, holeS, holeS)
+                love.graphics.draw(hole, i * quality - digdugwidth, j * quality + 40 - digdugheight - 35, 0, holeS, holeS)
             end
         end
     end
@@ -100,7 +101,7 @@ function love.draw()
     -- love.graphics.print(gridX + directionx)
     -- love.graphics.print(gridY + directiony, 0, 200)
     love.graphics.print(digdugy, 0, 500)
-    love.graphics.print(directiony, 0, 600)
+    love.graphics.print(HOLEGRID[gridX][gridY + directiony], 0, 600)
 
     if HOLEGRID[gridX + directionx][gridY + directiony] == 1 then
         love.graphics.draw(dug, digdugx - digdugwidth - 5, digdugy - digdugheight, digdugorient, sx / 2 + 0.021, sy / 2 + 0.021)
@@ -116,10 +117,10 @@ function love.draw()
 end
 local function drawhole(digdugx, digdugy)
     --digdugx = digdugx - 25
-    if digdugy % quality == 0 and digdugx % quality == 0 and digdugy >= 50 then
-        HOLEGRID[digdugx / quality][digdugy / quality - 1] = 1
+    if digdugy % quality == 0 and digdugx % quality == 0 and digdugy > 50 then
+        HOLEGRID[digdugx / quality][digdugy / quality] = 1
     end
-    if digdugy % 50 == 0 and digdugx % 50 == 0 and digdugy >= 50 then
+    if digdugy % 50 == 0 and digdugx % 50 == 0 and digdugy > 50 then
         GRID[digdugx / 50][digdugy / 50 - 1] = 1
     end
 end
@@ -156,7 +157,7 @@ function love.update()
     end
     if love.keyboard.isDown('right') and digdugx < 600 then
         if digdugy % 50 == 0 then
-            digdugx = digdugx + 2.5
+            digdugx = digdugx + movexamt
             resetdirection(1, 0)
 
         end
