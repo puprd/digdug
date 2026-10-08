@@ -25,16 +25,16 @@ function love.load()
     --background = love.graphics.newImage("background.png")
     ship = love.graphics.newImage("spaceship.png")
     laser = love.graphics.newImage("laser.png")
-    shipwidth = ship:getWidth() * (ship:getWidth() / (VIRTUAL_WIDTH * VIRTUAL_HEIGHT / 150))
-    shipheight = ship:getHeight() * (ship:getHeight() / (VIRTUAL_WIDTH * VIRTUAL_HEIGHT / 150))
+    shipwidth = ship:getWidth() * (ship:getWidth() / (VIRTUAL_WIDTH * VIRTUAL_HEIGHT / 2002))
+    shipheight = ship:getHeight() * (ship:getHeight() / (VIRTUAL_WIDTH * VIRTUAL_HEIGHT / 2002))
     shipx = VIRTUAL_WIDTH / 2 - shipwidth / 2 
     shipy = VIRTUAL_HEIGHT - 80
 end
 
 function love.draw()
         love.graphics.print(shipx .. ", " .. shipy, 0, 0)
-    local scalewidth =  ship:getWidth() / (VIRTUAL_WIDTH * VIRTUAL_HEIGHT / 150)
-    local scaleheight =  ship:getHeight() / (VIRTUAL_WIDTH * VIRTUAL_HEIGHT / 150)
+    local scalewidth =  ship:getWidth() / (VIRTUAL_WIDTH * VIRTUAL_HEIGHT / 2002)
+    local scaleheight =  ship:getHeight() / (VIRTUAL_WIDTH * VIRTUAL_HEIGHT / 2002)
     love.graphics.draw(ship, shipx, shipy, 0, scalewidth, scaleheight)
     for i, l in ipairs(lasers) do
         l.y = l.y - 5
