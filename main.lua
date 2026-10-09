@@ -5,12 +5,13 @@ local shipx
 local shipy
 local shipwidth
 local shipheight
+local healingcooldown = 10
 local laser
 local titlefont = love.graphics.newFont("pixelfont.ttf", 40)
 local title = true
 local krells = {}
 local shiphealth = 50
-local shieldhealth = 20
+local shieldhealth = 20 -- initial shield health
 local locked = 0
 local damagecooldown = 0.5
 local pixelfont = love.graphics.newFont("pixelfont.ttf", 16)
@@ -200,6 +201,18 @@ love.graphics.setColor(1, 1, 1)
     end
 end
 function love.update(dt)
+    if shieldhealth < 0 then 
+        shieldhealth = 0
+    end
+    if healingcooldown > 0 then
+            healingcooldown = healingcooldown - dt
+        
+    else
+        healingcooldown = 10
+        if shieldhealth < 20 then
+            shieldhealth = shieldhealth + 5
+        end
+    end
     if title then 
         if love.keyboard.isDown("return") then
             title = false
