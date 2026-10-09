@@ -6,6 +6,8 @@ local shipy
 local shipwidth
 local shipheight
 local laser
+local titlefont = love.graphics.newFont("pixelfont.ttf", 40)
+local title = true
 local krells = {}
 local shiphealth = 50
 local shieldhealth = 20
@@ -14,7 +16,7 @@ local damagecooldown = 0.5
 local pixelfont = love.graphics.newFont("pixelfont.ttf", 16)
 -- local explosionTimer = 0
 -- local explosionFrame = 1
-local level = 1
+local level = 0
 local laserx
 local lasery
 local lasers = {}
@@ -52,6 +54,7 @@ function love.load()
     shipheight = ship:getHeight() * (ship:getHeight() / (VIRTUAL_WIDTH * VIRTUAL_HEIGHT / 2002))
     shipx = VIRTUAL_WIDTH / 2 - shipwidth / 2
     shipy = VIRTUAL_HEIGHT - 80
+    
     newlevel()
 end
 function takedamage()
@@ -71,8 +74,18 @@ function newlevel()
 
     local types = {}
     if level == 1 then
-        types = {"stationary", "stationary", "stationary"}
+        types = {"stationary", "fixedright", "stationary"}
     end
+    if level == 2 then
+        types = {"stationary", "targeting", "stationary", "mirror", "stationary"}
+    end
+    if level == 3 then
+        types = {"stationary", "targeting", "mirror", "stationary", "targeting"}
+    end
+    if level == 4 then
+        types = {"stationary", "fixedleft", "targeting", "fixedright", "stationary"}
+    end
+    level = level + 1
     krells = {}
     for i = 1, #types, 1 do
         table.insert(krells, {
@@ -88,6 +101,14 @@ function newlevel()
     end
 end
 function love.draw()
+    if title then 
+
+        love.graphics.setFont(titlefont)
+        love.graphics.printf("SKYWARD FLIGHT", 0, VIRTUAL_HEIGHT / 2 - 60, VIRTUAL_WIDTH, "center") --how do I make the text bigger? answer: 
+        love.graphics.setFont(pixelfont)
+        love.graphics.printf("Press Enter to Start", 0, VIRTUAL_HEIGHT / 2 + 20, VIRTUAL_WIDTH, "center")
+        return
+    end
     love.graphics.setFont(pixelfont)
     love.graphics.print("Ship Health: " .. shiphealth, 400, 20)
     love.graphics.print("Shield Health: " .. shieldhealth, 400, 40)
@@ -97,26 +118,22 @@ function love.draw()
     local scaleheight = ship:getHeight() / (VIRTUAL_WIDTH * VIRTUAL_HEIGHT / 2002)
     love.graphics.draw(ship, shipx, shipy, 0, scalewidth, scaleheight)
     for i, l in ipairs(lasers) do
+        
         love.graphics.draw(laser, l.x, l.y + 20, 0, 0.1, 0.1)
         l.y = l.y - 5
         love.graphics.setColor(0, 0.5, 1)
 
-love.graphics.rectangle(
-    "line",
-    l.x + 28,
-    l.y + 30,
-    0.01 * laser:getWidth(),
-    0.08 * laser:getHeight()
-)
+        --love.graphics.rectangle("line", l.x + 28, l.y + 30, 0.01 * laser:getWidth(), 0.08 * laser:getHeight())
 
-love.graphics.setColor(1, 1, 1)
+        love.graphics.setColor(1, 1, 1)
         if l.y <= 0 then
             table.remove(lasers, i)
         end
 
         for j, k in ipairs(krells) do
             -- if (l.y <= k.y and l.y >= k.y - 40) and (l.x >= k.x + 612 / 8 - 50 and l.x <= k.x + 612 / 8 + 25) then
-            if checkCollision(l.x + 28, l.y + 30, 0.01 * laser:getWidth(), 0.08 * laser:getHeight(), k.x + 55, k.y + 60, 612 / 8 - 10, 40) then
+            if checkCollision(l.x + 28, l.y + 50, 0.01 * laser:getWidth(), 0.04 * laser:getHeight(), k.x + 55, k.y + 60,
+                612 / 8 - 10, 40) then
                 k.exploding = true
                 table.remove(lasers, i)
                 -- x1, y1, w1, h1, x2, y2, w2, h2
@@ -130,22 +147,20 @@ love.graphics.setColor(1, 1, 1)
     for i, k in ipairs(krells) do
         love.graphics.setColor(1, 1, 0)
 
-love.graphics.rectangle(
-    "line",
-    k.x + 60,
-    k.y + 60,
-    612 / 8 - 20,
-    40 
-)
+        --love.graphics.rectangle("line", k.x + 65, k.y + 60, 612 / 8 - 30, 40)
 
-love.graphics.setColor(1, 1, 1)
+        love.graphics.setColor(1, 1, 1)
         love.graphics.draw(krell, explosionFrames[k.explodingframe], k.x, k.y, 0)
         love.graphics.print("a", 0, shipy + shipheight / 2 + 10)
         love.graphics.print("a", 0, shipy + shipheight / 2 + 30)
         love.graphics.print("y", k.x, k.y)
         love.graphics.print("x", k.x, k.y)
-        if shipy - shipheight / 2 <= k.y + 40 and shipy + shipheight / 2 >= k.y and shipx - shipwidth / 2 <= k.x + 612 /
-            8 and shipx + shipwidth / 2 >= k.x then -- (k.y >= shipy + shipheight / 2 + 10 and k.y + 40 <= shipy + shipheight / 2 + 30) and (shipx  >= k.x + 612 / 8 - 25 and shipx + shipwidth + 10 <= k.x + 612 / 8 + 15) then 
+        -- if (shipy - shipheight / 2 <= k.y + 40 and shipy + shipheight / 2 >= k.y and shipx - shipwidth / 2 <= k.x + 612 /
+        --     8 and shipx + shipwidth / 2 >= k.x) and (k.exploding == false) then -- (k.y >= shipy + shipheight / 2 + 10 and k.y + 40 <= shipy + shipheight / 2 + 30) and (shipx  >= k.x + 612 / 8 - 25 and shipx + shipwidth + 10 <= k.x + 612 / 8 + 15) then 
+        --     takedamage()
+        -- end
+        if checkCollision( k.x + 65, k.y + 60, 612 / 8 - 30, 40, shipx, shipy,
+            shipwidth, shipheight) then
             takedamage()
         end
         if k.explodingframe >= #explosionFrames then
@@ -154,6 +169,16 @@ love.graphics.setColor(1, 1, 1)
     end
 
     for i, l in ipairs(krelllasers) do
+        love.graphics.setColor(1, 0, 0)
+-- love.graphics.rectangle(
+--     "line",
+--     l.x + 28, 
+--     l.y + 50,    
+--     0.01 * laser:getWidth(),
+--     0.04 * laser:getHeight()
+-- )
+love.graphics.setColor(1, 1, 1)
+
         l.y = l.y + 5
         love.graphics.draw(laser, l.x, l.y + 20, 0, 0.1, 0.1)
         if l.y >= VIRTUAL_HEIGHT then
@@ -175,6 +200,11 @@ love.graphics.setColor(1, 1, 1)
     end
 end
 function love.update(dt)
+    if title then 
+        if love.keyboard.isDown("return") then
+            title = false
+        end
+    end
     if #krells == 0 then
         newlevel()
     end
@@ -231,6 +261,22 @@ function love.update(dt)
                 k.x = VIRTUAL_WIDTH / 2 - 612 / 8
             end
 
+        end
+        if k.type == "fixedright" then
+                   k.x = k.x + 2
+                k.y = k.y + 2
+                if k.x > VIRTUAL_WIDTH then
+                    k.x = 0
+                    k.y = 0
+                end
+        end
+        if k.type == "fixedleft" then
+                   k.x = k.x - 2
+                k.y = k.y + 2
+                 if k.x < 0 then
+                    k.x = VIRTUAL_WIDTH
+                    k.y = 0
+                end
         end
     end
     -- explosionTimer = explosionTimer + dt
