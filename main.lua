@@ -5,10 +5,12 @@ local shipx
 local shipy
 local shipwidth
 local shipheight
- 
-lifebuster= nil
+
+lifebuster = nil
 local bossy = VIRTUAL_HEIGHT / 2 - 300
 local bossx = VIRTUAL_WIDTH / 2 - 50
+local bosshealth = 300
+local maxbosshealth = 300
 local locked = "right"
 
 local damage = false
@@ -68,13 +70,40 @@ function love.load()
 
     newlevel()
 end
+
+local typedText = ""
+
+function love.textinput(t)
+    typedText = typedText .. t
+
+    if typedText:lower():find("skyward", 1, true) then
+        print("Secret word detected!")
+        shiphealth = 40
+
+        newlevel()
+        typedText = ""
+    end
+    if typedText:lower():find("dogsrule", 1, true) then
+        level = level + 5
+        newlevel()
+        typedText = ""
+    end
+    if typedText:lower():find("toasty", 1, true) then
+        shiphealth = 200
+        typedText = ""
+    end
+    -- Keep the text from growing forever
+    if #typedText > 100 then
+        typedText = typedText:sub(-20)
+    end
+end
 local message = ""
 local messageTimer = 0
 local timers = {}
 table.insert(timers, 1, {
-    time = 10,
+    time = 15,
     name = "healingcooldown",
-    ogtime = 10
+    ogtime = 15
 })
 table.insert(timers, 2, {
     time = 1,
@@ -129,6 +158,21 @@ function newlevel()
         boss = "lifebuster"
         types = {"stationary", "stationary", "laser", "laser", "stationary", "stationary"}
     end
+    if level == 6 then
+        types = {"laser", "laser", "laser", "laser", "laser"}
+    end
+    if  level == 7 then
+        types = {"stationary", "mirror", "laser", "targeting", "stationary"}
+    end
+    if level == 8 then
+        types = {"laser", "laser", "mirror", "targeting", "stationary"}
+        shootDelay = 0.7
+    end
+    if level == 9 then
+        types = {"laser", "stationary", "targeting", "stationary", "laser"}
+        shootDelay = 0.6
+    end
+    
     level = level + 1
     krells = {}
     for i = 1, #types, 1 do
@@ -194,9 +238,19 @@ function love.draw()
         if l.y <= 0 then
             table.remove(lasers, i)
         end
-        --love.graphics.rectangle("line", bossx + 40, bossy + 160, lifebuster:getWidth() * 0.3, lifebuster:getHeight() * 0.1)
-        if checkCollision(l.x + 28, l.y + 50, 0.01 * laser:getWidth(), 0.04 * laser:getHeight(), bossx + 40, bossy + 160, lifebuster:getWidth() * 0.3, lifebuster:getHeight() * 0.1) and boss then
+        -- love.graphics.rectangle("line", bossx + 40, bossy + 160, lifebuster:getWidth() * 0.3, lifebuster:getHeight() * 0.1)
+        if boss and
+            checkCollision(l.x + 28, l.y + 50, 0.01 * laser:getWidth(), 0.04 * laser:getHeight(), bossx + 40,
+                bossy + 160, _G[boss]:getWidth() * 0.3, _G[boss]:getHeight() * 0.1) then
             table.remove(lasers, i)
+            bosshealth = bosshealth - 10
+            if bosshealth <= 0 then
+                shiphealth = 40
+                shieldhealth = 20
+                love.graphics.printf("Boss Defeated!", 0, VIRTUAL_HEIGHT / 2, VIRTUAL_WIDTH, "center")
+                boss = nil
+                newlevel()
+            end
         end
         for j, k in ipairs(krells) do
             -- if (l.y <= k.y and l.y >= k.y - 40) and (l.x >= k.x + 612 / 8 - 50 and l.x <= k.x + 612 / 8 + 25) then
@@ -226,7 +280,9 @@ function love.draw()
         if k.shieldjustbroken then
             love.graphics.setColor(0, 0, 1)
         end
-        love.graphics.draw(krell, explosionFrames[k.explodingframe], k.x, k.y, 0)
+        if not (boss and bosscooldown > 0) then
+            love.graphics.draw(krell, explosionFrames[k.explodingframe], k.x, k.y, 0)
+        end
         love.graphics.setColor(1, 1, 1)
         love.graphics.print("a", 0, shipy + shipheight / 2 + 10)
         love.graphics.print("a", 0, shipy + shipheight / 2 + 30)
@@ -248,13 +304,30 @@ function love.draw()
         if bosscooldown > 0 then
             -- love.graphics.push() how do i make a variable global? 
             love.graphics.setFont(titlefont)
-            love.graphics.print("THE " ..  string.upper(boss), VIRTUAL_WIDTH / 4 + 10, VIRTUAL_HEIGHT / 2 - 50)
+            love.graphics.print("THE " .. string.upper(boss), VIRTUAL_WIDTH / 4 + 10, VIRTUAL_HEIGHT / 2 - 50)
+            love.graphics.setFont(pixelfont)
+            love.graphics.print("NO SHIELD REGEN, YOUR HEALTH WILL BE AUTOMATICALLY SET TO 40", VIRTUAL_WIDTH / 4 - 90, VIRTUAL_HEIGHT / 2 + 30)
+            shiphealth = 40
+            shieldhealth = 0
             love.graphics.setFont(pixelfont)
             -- love.graphics.pop()
         else
             love.graphics.print(boss)
-            love.graphics.draw( _G[boss], bossx, bossy, 0, 0.5, 0.5)-- bad argument 1 to draw. How do I fix this ? the answer is to make sure that the global variable with the name stored in `boss` exists and is a valid drawable object (like an image). it is. but sometimes the image might not be loaded yet or there could be a typo in the variable name. It is loaded and there is no type. but you also need to ensure that the image is fully loaded before attempting to draw it. it is, it isn't. but 
-            --love.graphics.print(locked, 0, 0)
+            local barWidth = 200
+            local healthRatio = math.max(0, bosshealth / maxbosshealth)
+
+            -- Background: missing health
+            love.graphics.setColor(1, 0, 0)
+            love.graphics.rectangle("fill", bossx - 20, bossy, barWidth, 20)
+
+            -- Foreground: remaining health
+            love.graphics.setColor(0, 1, 0)
+            love.graphics.rectangle("fill", bossx - 20, bossy, barWidth * healthRatio, 20)
+
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.draw(_G[boss], bossx, bossy, 0, 0.5, 0.5) -- bad argument 1 to draw. How do I fix this ? the answer is to make sure that the global variable with the name stored in `boss` exists and is a valid drawable object (like an image). it is. but sometimes the image might not be loaded yet or there could be a typo in the variable name. It is loaded and there is no type. but you also need to ensure that the image is fully loaded before attempting to draw it. it is, it isn't. but 
+            -- love.graphics.print(locked, 0, 0)
         end
     end
     for i, l in ipairs(krelllasers) do
@@ -269,7 +342,9 @@ function love.draw()
         love.graphics.setColor(1, 1, 1)
 
         l.y = l.y + 5
-        love.graphics.draw(laser, l.x, l.y + 20, 0, 0.1, 0.1)
+        if not (boss and bosscooldown > 0) then
+            love.graphics.draw(laser, l.x, l.y + 20, 0, 0.1, 0.1)
+        end
         if l.y >= VIRTUAL_HEIGHT then
             table.remove(krelllasers, i)
         end
@@ -311,15 +386,16 @@ function love.update(dt)
         end
 
     end
-
-    bosscooldown = bosscooldown - dt
+    if boss then
+        bosscooldown = bosscooldown - dt
+    end
     for _, timer in ipairs(timers) do
         timer.time = timer.time - dt
 
         if timer.time <= 0 then
             if timer.name == "healingcooldown" then
-                if not boss then
-                shieldhealth = shieldhealth + 5
+                if not boss  and shieldhealth < 20 then
+                    shieldhealth = shieldhealth + 5
                 end
             end
             if timer.name == "redflashcooldown" then
@@ -384,17 +460,18 @@ function love.update(dt)
             k.x = shipx - shipwidth / 2
         end
         if k.type == "targeting" then
-
+            
             if shipx - shipwidth / 2 > k.x then
+                k.locked = "right"
 
-                -- repeat
+                
                 k.x = k.x + 2
                 k.y = k.y + 2
 
-                -- until k.y >= shipy
                 -- -- k.y = 0
 
             else
+                k.locked = "left"
                 -- repeat
                 k.x = k.x - 2
                 k.y = k.y + 2
@@ -434,16 +511,16 @@ function love.update(dt)
             else
                 if k.locked == "right" then
 
-                    bossx = bossx + 3
-                    if bossx >= VIRTUAL_WIDTH - 50 then
+                    k.x = k.x + 3
+                    if k.x >= VIRTUAL_WIDTH - 50 then
                         k.locked = "left"
 
                     end
 
                 end
                 if k.locked == "left" then
-                    bossx = bossx - 3
-                    if bossx <= 0 then
+                    k.x = k.x - 3
+                    if k.x <= 0 then
                         k.locked = "right"
                     end
                 end
@@ -459,18 +536,20 @@ function love.update(dt)
     --         explosionFrame = #explosionFrames
     --     end
     -- end
-
-    if love.keyboard.isDown('left') and shipx > 0 then
-        shipx = shipx - 3
-    end
-    if love.keyboard.isDown('right') and shipx < VIRTUAL_WIDTH - shipwidth then
-        shipx = shipx + 3
-    end
-    if love.keyboard.isDown('up') and shipy > 0 then
-        shipy = shipy - 3
-    end
-    if love.keyboard.isDown('down') and shipy < VIRTUAL_HEIGHT - shipheight then
-        shipy = shipy + 3
+    if not (boss and bosscooldown > 0) then
+        if love.keyboard.isDown('left') and shipx > 0 then
+            shipx = shipx - 3
+        end
+        if love.keyboard.isDown('right') and shipx < VIRTUAL_WIDTH - shipwidth then
+            shipx = shipx + 3
+        end
+        if love.keyboard.isDown('up') and shipy > 0 then
+            shipy = shipy - 3
+        end
+        if love.keyboard.isDown('down') and shipy < VIRTUAL_HEIGHT - shipheight then
+            shipy = shipy + 3
+        end
+        
     end
     shootCooldown = shootCooldown - dt
     if love.keyboard.isDown('space') and shootCooldown <= 0 then
